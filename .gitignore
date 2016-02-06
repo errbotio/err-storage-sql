@@ -1,0 +1,6 @@
+*.pyc
+/.idea
+/atlassian-ide-plugin.xml
+/.settings
+/config.py
+/.venv

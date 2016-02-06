@@ -1,0 +1,6 @@
+[Core]
+Name = SQL
+Module = sql
+
+[Documentation]
+Description = This is the errbot storage plugin for SQL. It is compatible with Firebird, Microsoft SQL Server, MySQL, Oracle, PostgreSQL, SQLite, Sybase, IBM DB2, Amazon Redshift, exasol, Sybase SQL Anywhere, MonetDB.
