@@ -79,10 +79,10 @@ class SQLPlugin(StoragePluginBase):
 
         # Hack around the multithreading issue in memory only sqlite.
         # This mode is useful for testing.
-        if config[DATA_URL_ENTRY] == 'sqlite://':
+        if config[DATA_URL_ENTRY].startswith('sqlite://'):
             from sqlalchemy.pool import StaticPool
             self._engine = create_engine(
-                'sqlite://',
+                config[DATA_URL_ENTRY],
                 connect_args={'check_same_thread': False},
                 poolclass=StaticPool,
                 echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG)
