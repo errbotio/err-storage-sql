@@ -1,0 +1,6 @@
+[Core]
+Name = Storagetest
+Module = storagetest
+
+[Python]
+Version = 3

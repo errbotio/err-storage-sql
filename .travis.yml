@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+
+before_script:
+  - mysql -e 'create database travis_ci_test;'
+  - psql -c 'create database travis_ci_test;' -U postgres
+
+install:
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+  - pip install errbot psycopg2 pymysql pytest pytest-pep8
+
+services:
+  - mysql
+  - postgresql
+
+script: py.test --pep8
