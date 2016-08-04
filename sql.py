@@ -51,7 +51,7 @@ class SQLStorage(StorageBase):
             raise KeyError("%s doesn't exists." % key)
 
     def set(self, key: str, value: Any) -> None:
-        self.session.add(self.clazz(key, value))
+        self.session.merge(self.clazz(key, value))
         self.session.commit()
 
     def len(self):
@@ -99,7 +99,8 @@ class SQLPlugin(StoragePluginBase):
         # Create a table with the given namespace
         table = Table(namespace, self._metadata,
                       Column('key', String(), primary_key=True),
-                      Column('value', String()))
+                      Column('value', String()),
+                      extend_existing=True)
 
         class NewKV(KV):
             pass
