@@ -98,8 +98,8 @@ class SQLPlugin(StoragePluginBase):
 
         # Create a table with the given namespace
         table = Table(namespace, self._metadata,
-                      Column('key', String(), primary_key=True),
-                      Column('value', String()),
+                      Column('key', String(255), primary_key=True),
+                      Column('value', String(32768)),
                       extend_existing=True)
 
         class NewKV(KV):
