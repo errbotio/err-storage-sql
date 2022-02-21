@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from jsonpickle import encode, decode
 from typing import Any
 from sqlalchemy import (
-    Table, MetaData, Column, Integer, String,
+    Table, MetaData, Column, Integer, String, Text,
     ForeignKey, create_engine, select)
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
