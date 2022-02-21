@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from jsonpickle import encode, decode
 from typing import Any
 from sqlalchemy import (
-    Table, MetaData, Column, Integer, String,
+    Table, MetaData, Column, Integer, String, Text,
     ForeignKey, create_engine, select)
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -113,7 +113,7 @@ class SQLPlugin(StoragePluginBase):
         # Create a table with the given namespace
         table = Table(namespace, self._metadata,
                       Column('key', String(767), primary_key=True),
-                      Column('value', String(32768)),
+                      Column('value', Text(32768)),
                       extend_existing=True)
 
         class NewKV(KV):
