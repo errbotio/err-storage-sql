@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import (
     Table, MetaData, Column, Integer, String,
     ForeignKey, create_engine, select)
-from sqlalchemy.orm import mapper, sessionmaker
+from sqlalchemy.orm import registry, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from errbot.storage.base import StorageBase, StoragePluginBase
 
@@ -104,7 +104,8 @@ class SQLPlugin(StoragePluginBase):
                 pool_recycle=config.get('connection_recycle', 1800),
                 pool_pre_ping=config.get('connection_ping', True),
                 echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG)
-        self._metadata = MetaData()
+        self._mapper_registry = registry()
+        self._metadata = self._mapper_registry.metadata
         self._sessionmaker = sessionmaker()
         self._sessionmaker.configure(bind=self._engine)
 
@@ -119,7 +120,7 @@ class SQLPlugin(StoragePluginBase):
         class NewKV(KV):
             pass
 
-        mapper(NewKV, table, properties={
+        self._mapper_registry.map_imperatively(NewKV, table, properties={
             '_key': table.c.key,
             '_value': table.c.value})
 
