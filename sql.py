@@ -6,7 +6,7 @@ from typing import Any
 
 from errbot.storage.base import StorageBase, StoragePluginBase
 from jsonpickle import decode, encode
-from sqlalchemy import Column, MetaData, String, Table, create_engine
+from sqlalchemy import Column, MetaData, String, Table, Text, create_engine
 from sqlalchemy.orm import registry, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -120,7 +120,7 @@ class SQLPlugin(StoragePluginBase):
             namespace,
             self._metadata,
             Column("key", String(767), primary_key=True),
-            Column("value", String(32768)),
+            Column("value", Text(32768)),
             extend_existing=True,
         )
 
