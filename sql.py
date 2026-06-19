@@ -2,25 +2,25 @@
 
 import logging
 from contextlib import contextmanager
-from jsonpickle import encode, decode
 from typing import Any
-from sqlalchemy import (
-    Table, MetaData, Column, Integer, String,
-    ForeignKey, create_engine, select)
-from sqlalchemy.orm import mapper, sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
+
 from errbot.storage.base import StorageBase, StoragePluginBase
+from jsonpickle import decode, encode
+from sqlalchemy import Column, MetaData, String, Table, create_engine
+from sqlalchemy.orm import registry, sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
-log = logging.getLogger('errbot.storage.sql')
+log = logging.getLogger("errbot.storage.sql")
 
-DATA_URL_ENTRY = 'data_url'
+DATA_URL_ENTRY = "data_url"
 
 
 class KV(object):
     """This is a basic key/value. Pickling in JSON."""
+
     def __init__(self, key: str, value: Any):
         self._key = key
-        self._value = encode(value)
+        self._value = encode(value, keys=True)
 
     @property
     def key(self) -> str:
@@ -28,7 +28,7 @@ class KV(object):
 
     @property
     def value(self) -> Any:
-        return decode(self._value)
+        return decode(self._value, keys=True)
 
 
 class SQLStorage(StorageBase):
@@ -48,17 +48,18 @@ class SQLStorage(StorageBase):
     def get(self, key: str) -> Any:
         try:
             with self._session_op() as session:
-                result = session.query(self.clazz).filter(self.clazz._key == key).one().value
+                result = (
+                    session.query(self.clazz).filter(self.clazz._key == key).one().value
+                )
         except NoResultFound:
             raise KeyError("%s doesn't exists." % key)
         return result
 
     def remove(self, key: str):
-        try:
-            with self._session_op() as session:
-                session.query(self.clazz).filter(self.clazz._key == key).delete()
-        except NoResultFound:
-            raise KeyError("%s doesn't exists." % key)
+        with self._session_op() as session:
+            count = session.query(self.clazz).filter(self.clazz._key == key).delete()
+            if count == 0:
+                raise KeyError("%s doesn't exists." % key)
 
     def set(self, key: str, value: Any) -> None:
         with self._session_op() as session:
@@ -82,28 +83,32 @@ class SQLPlugin(StoragePluginBase):
         config = self._storage_config
         if DATA_URL_ENTRY not in config:
             raise Exception(
-                'You need to specify a connection URL for the database in your'
-                'config.py. For example:\n'
-                'STORAGE_CONFIG={\n'
+                "You need to specify a connection URL for the database in your"
+                "config.py. For example:\n"
+                "STORAGE_CONFIG={\n"
                 '"data_url": "postgresql://'
                 'scott:tiger@localhost/mydatabase/",\n'
-                '}')
+                "}"
+            )
 
         # Hack around the multithreading issue in memory only sqlite.
         # This mode is useful for testing.
-        if config[DATA_URL_ENTRY].startswith('sqlite://'):
+        if config[DATA_URL_ENTRY].startswith("sqlite://"):
             from sqlalchemy.pool import StaticPool
+
             self._engine = create_engine(
                 config[DATA_URL_ENTRY],
-                connect_args={'check_same_thread': False},
+                connect_args={"check_same_thread": False},
                 poolclass=StaticPool,
-                echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG)
+                echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG,
+            )
         else:
             self._engine = create_engine(
                 config[DATA_URL_ENTRY],
-                pool_recycle=config.get('connection_recycle', 1800),
-                pool_pre_ping=config.get('connection_ping', True),
-                echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG)
+                pool_recycle=config.get("connection_recycle", 1800),
+                pool_pre_ping=config.get("connection_ping", True),
+                echo=bot_config.BOT_LOG_LEVEL == logging.DEBUG,
+            )
         self._metadata = MetaData()
         self._sessionmaker = sessionmaker()
         self._sessionmaker.configure(bind=self._engine)
@@ -111,17 +116,21 @@ class SQLPlugin(StoragePluginBase):
     def open(self, namespace: str) -> StorageBase:
 
         # Create a table with the given namespace
-        table = Table(namespace, self._metadata,
-                      Column('key', String(767), primary_key=True),
-                      Column('value', String(32768)),
-                      extend_existing=True)
+        table = Table(
+            namespace,
+            self._metadata,
+            Column("key", String(767), primary_key=True),
+            Column("value", String(32768)),
+            extend_existing=True,
+        )
 
         class NewKV(KV):
             pass
 
-        mapper(NewKV, table, properties={
-            '_key': table.c.key,
-            '_value': table.c.value})
+        reg = registry()
+        reg.map_imperatively(
+            NewKV, table, properties={"_key": table.c.key, "_value": table.c.value}
+        )
 
         # ensure that the table for this namespace exists
         self._metadata.create_all(self._engine)
