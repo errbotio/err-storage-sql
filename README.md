@@ -21,3 +21,25 @@ By using [SQLAlchemy](sqlalchemy.org), it has the support for Firebird, Microsof
 
 If you want to migrate from the local storage to SQL, you should be able to backup your data (with STORAGE commented)
 then restore it back with STORAGE uncommented.
+
+### Running Tests
+
+To run the automated test suite:
+
+1. Create and activate a Python virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+2. Install the dependencies and testing requirements:
+   ```bash
+   pip install -r requirements.txt errbot pytest tox
+   ```
+3. Run the tests using `pytest` directly:
+   ```bash
+   pytest
+   ```
+   Or run both tests and style checks using `tox`:
+   ```bash
+   tox
+   ```
