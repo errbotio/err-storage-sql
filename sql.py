@@ -20,7 +20,7 @@ class KV(object):
 
     def __init__(self, key: str, value: Any):
         self._key = key
-        self._value = encode(value)
+        self._value = encode(value, keys=True)
 
     @property
     def key(self) -> str:
@@ -28,7 +28,7 @@ class KV(object):
 
     @property
     def value(self) -> Any:
-        return decode(self._value)
+        return decode(self._value, keys=True)
 
 
 class SQLStorage(StorageBase):
