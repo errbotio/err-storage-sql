@@ -6,16 +6,7 @@ from typing import Any
 
 from errbot.storage.base import StorageBase, StoragePluginBase
 from jsonpickle import decode, encode
-from sqlalchemy import (
-    Column,
-    ForeignKey,
-    Integer,
-    MetaData,
-    String,
-    Table,
-    create_engine,
-    select,
-)
+from sqlalchemy import Column, MetaData, String, Table, create_engine
 from sqlalchemy.orm import registry, sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
